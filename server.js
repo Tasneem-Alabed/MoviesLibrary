@@ -8,7 +8,7 @@ const server = express();
 
  server.get('/',(req,res)=>{
     
-    function GetDataJson (   titleValur ,  pathVal ,  obverVal){
+    function GetDataJson ( titleValur ,  pathVal ,  obverVal){
  
 this.titleValur=titleValur;
  
