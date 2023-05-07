@@ -1,8 +1,10 @@
  
 const express = require('express');
  const cors =require('cors');
+ const pg = require('pg');
 const axios = require('axios');
 const server = express();
+const client= new pg.Client("postgresql://localhost:5432/lab15");
 
 server.use(cors())
  const PORT=3000;
