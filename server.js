@@ -12,7 +12,7 @@ server.use(express.json());
 const PORT = 3000;
 
 
-const client = new pg.Client('postgresql://localhost:5432/lab15');
+const client = new pg.Client(Data_base_url);
 function Movie(title, poster_path, overview) {
     this.title = title;
     this.poster_path = poster_path;
