@@ -4,14 +4,15 @@ const server = express();
 const data = require('./MovieData/data.json');
 const cors = require('cors');
 const axios = require('axios');
+const pg= require('pg');
 server.use(cors());
 require('dotenv').config();
 const apiKey = process.env.api_key;
-
+server.use(express.json());
 const PORT = 3000;
-server.listen(PORT, () => {
- console.log('server')
-});
+
+
+const client = new pg.Client(Data_base_url);
 function Movie(title, poster_path, overview) {
     this.title = title;
     this.poster_path = poster_path;
@@ -44,7 +45,8 @@ server.get('/trending', TrendyMoviesEveryWeek);
 server.get('/search', SearchForMovies);
 server.get('/ReleasDate', SearchReleasDate);
 server.get('/SimilarMovies', SimilarMovies);
-
+server.get('/getMovies', gitMoviesHandelar);
+server.post('/addMovie' , postMovies);
 server.get('/servererror', (req, res) => {
     res.status(500).send("Page Not Found");
 });
@@ -137,8 +139,42 @@ try{
         errorHandler(error,req,res);
     }
 }
- 
 
+function gitMoviesHandelar(req,res){
+const sql = `SELECT * FROM movies`;
+client.query(sql)
+.then(data1 =>{
+res.send(data1.rows);
+})
+
+.catch((error)=>{
+   errorHandler(error,req,res);
+})
+}
+
+function postMovies(req, res){
+   const mov = req.body;
+
+   console.log(mov);
+
+   const sqlInsert = `INSERT INTO movies (title , overview)
+   VALUES($1,$2)`;
+   const value= [mov.title , mov.overview];
+   client.query(sqlInsert,value)
+   .then( data2 =>{
+      res.send("Data has been added susccefull")
+   }).catch((error)=>{
+      errorHandler(error,req,res);
+   })
+
+}
+ 
+client.connect()
+.then(() =>{
+   server.listen(PORT, () => {
+      console.log('server')
+     });
+})
 function errorHandler(error,req,res){
     const err={
         errNum:500,
