@@ -12,7 +12,7 @@ server.use(express.json());
 const PORT = 3000;
 
 
-const client = new pg.Client(Data_base_url);
+const client = new pg.Client(process.env.Data_base_url);
 function Movie(title, poster_path, overview) {
     this.title = title;
     this.poster_path = poster_path;
@@ -47,6 +47,9 @@ server.get('/ReleasDate', SearchReleasDate);
 server.get('/SimilarMovies', SimilarMovies);
 server.get('/getMovies', gitMoviesHandelar);
 server.post('/addMovie' , postMovies);
+server.delete('/DELETE/:id' ,dELETEByid);
+server.put('/UPDATE/id',updateMovies)
+
 server.get('/servererror', (req, res) => {
     res.status(500).send("Page Not Found");
 });
@@ -118,7 +121,36 @@ try{
     }
 }
 
+function dELETEByid(req , res){
+    const id= req.params.id;
+    console.log(req.params.id);
+    const sql = `DELETE FROM movies WHERE di=${id};`
+    client.query(sql)
+    .then((data3)=>{
+        res.status(202).send(data3)
+    })
+    .catch((error)=>{
+        errorHandler(error,req,res)
+    })
+}
  
+function updateMovies(req,res){
+   
+    const {id} = req.params;
+     
+    const sql = `UPDATE movies
+    SET title = $1
+    WHERE di = ${id};`
+    const {title} = req.body;
+    const values = [title];
+    client.query(sql,values).then((data4)=>{
+        res.send(data4)
+    })
+    .catch((error)=>{
+        errorHandler(error,req,res)
+    })
+}
+   
 function SimilarMovies(req, res) {
 try{
     let url = `https://api.themoviedb.org/3/movie/10468/similar?api_key=${apiKey}&language=en-US&page=1`;
@@ -169,6 +201,8 @@ function postMovies(req, res){
 
 }
  
+
+
 client.connect()
 .then(() =>{
    server.listen(PORT, () => {
