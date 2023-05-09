@@ -111,7 +111,7 @@ server.get('/vote_average',vote_average)
 
  })
  
-
+ client.connect
  server.listen(PORT,()=>{
     console.log("server");
  })
