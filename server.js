@@ -1,117 +1,148 @@
- 
+'use strict'
 const express = require('express');
- const cors =require('cors');
- const pg = require('pg');
-const axios = require('axios');
 const server = express();
-const client= new pg.Client("postgresql://localhost:5432/lab15");
+const data = require('./MovieData/data.json');
+const cors = require('cors');
+const axios = require('axios');
+server.use(cors());
+require('dotenv').config();
+const apiKey = process.env.api_key;
 
-server.use(cors())
- const PORT=3000;
+const PORT = 3000;
+server.listen(PORT, () => {
+ console.log('server')
+});
+function Movie(title, poster_path, overview) {
+    this.title = title;
+    this.poster_path = poster_path;
+    this.overview = overview
+}
+function MovieApi(id, title, release_date, poster_path, overview) {
+    this.id = id;
+    this.title = title;
+    this.release_date = release_date;
+    this.poster_path = poster_path;
+    this.overview = overview
+}
 
- server.get('/',homeHandlar);
-  server.get('/search',searchFunction)
+let firstMovie = new Movie(data.title, data.poster_path, data.overview);
+server.get('/', (req, res) => {
+    res.send(JSON.stringify(firstMovie));
+});
+server.get('/favorite', (req, res) => {
+    res.send("Welcome to Favorite Page");
+});
 
-  async  function searchFunction(req,res){
-   const url="https://api.themoviedb.org/3/trending/all/week?api_key=14a375a649743222ae5e7069be734fe3&language=en-US";
-   let axiosResult = await axios.get(url);
-    
-   console.log(axiosResult.data.results)
-   res.send(axiosResult);
-  }
-    function homeHandlar(req , res){
-      function GetDataJson ( titleValur ,  pathVal ,  obverVal){
- 
-         this.titleValur=titleValur;
-          
-         this.pathVal=pathVal;
-          
-         this.obverVal=obverVal;
+
+
+let obj = {
+    status: 500,
+    resonseText: "Sorry, something went wrong"
+};
+
+server.get('/trending', TrendyMoviesEveryWeek);
+server.get('/search', SearchForMovies);
+server.get('/ReleasDate', SearchReleasDate);
+server.get('/SimilarMovies', SimilarMovies);
+
+server.get('/servererror', (req, res) => {
+    res.status(500).send("Page Not Found");
+});
+server.get('*', (req, res) => {
+    res.status(404).send(JSON.stringify(obj));
+});
+server.use(errorHandler)
+
+function TrendyMoviesEveryWeek(req, res) {
+    try{
+
+    let url = `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}`;
+    axios.get(url)
+        .then(result => {
+           
+            let MovieApiList = result.data.results.map(item => {
+                let movie = new MovieApi(item.id, item.title, item.release_date, item.poster_path, item.overview)
+                return movie;
+            })
+            res.send(MovieApiList);
+        })
+        .catch((error) => {
+            res.status(500).send(error);
+        })
     }
- let move= new  GetDataJson(  Object.values(dataJson)[0] ,
-     Object.values(dataJson)[4],  
-   Object.values(dataJson)[7] );
+        catch(error){
+            errorHandler(error,req,res);
+        }
+}
+function SearchForMovies(req, res) {
+   try{
+    let url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&language=en-US&query=2&page=1&include_adult=false&primary_release_year=2000`;
+    axios.get(url)
+        .then(result => {
+            
+            let MovieApiListIn2000 = result.data.results.map(item => {
+                let movie = new MovieApi(item.id, item.title, item.release_date, item.poster_path, item.overview)
+                return movie;
+            })
+            res.send(MovieApiListIn2000);
+        })
+        .catch((error) => {
+            res.status(500).send(error);
+        })
+    }
+    catch(error){
+        errorHandler(error,req,res);
+    }
+}
 
-   res.send(move);
- }
-
-
- server.get('/favorite' , favoritHandelar)
-
- function favoritHandelar(req , res){
-   
-      res.send("Welcome to Favorite Page");
-   }
  
- server.get('/favorite1',(req,res)=>{
-    res.status(500).send("status: 500"+
-    "responseText:"+ "Sorry, something went wrong");
+function SearchReleasDate(req, res) {
+try{
+    let url = `https://api.themoviedb.org/3/movie/10468/release_dates?api_key=${apiKey}`;
+    axios.get(url)
+        .then(result => {
+            
+            let Movie= result.data.results;
+        
+        
+            res.send(Movie);
+        })
+        .catch((error) => {
+            res.status(500).send(error);
+        })
+    }
+    catch(error){
+        errorHandler(error,req,res);
+    }
+}
 
- })
- const dataJson = require("./MovieData/data.json");
-  
-
-  async function getApiResult (req,res){
-const url="https://api.themoviedb.org/3/trending/all/week?api_key=14a375a649743222ae5e7069be734fe3&language=en-US";
-let axiosResult = await axios.get(url);
  
-// console.log(axiosResult.data.results)
-// res.send(axiosResult);
-
-try{    
-   axios.get(url)
-   .then(result => {
-       let mapResult = axiosResult.data.results.map(item => {
-           let singleRecipe = new Movie(item.id, item.title, item.original_language, item.summary ,item.original_title ,item.overview);
-           return singleRecipe;
-       })
-       res.send(mapResult)
-
-   })
-   .catch((error)=>{
-       console.log('sorry you have something error',error)
-       res.status(500).send(error);
-   })
-
+function SimilarMovies(req, res) {
+try{
+    let url = `https://api.themoviedb.org/3/movie/10468/similar?api_key=${apiKey}&language=en-US&page=1`;
+    axios.get(url)
+        .then(result => {
+            
+            let MovieApiListIn2000 = result.data.results.map(item => {
+                let movie = new MovieApi(item.id, item.title, item.release_date, item.poster_path, item.overview)
+                return movie;
+            })
+            res.send(MovieApiListIn2000);
+        })
+        .catch((error) => {
+            res.status(500).send(error);
+        })
+    }
+    catch(error){
+        errorHandler(error,req,res);
+    }
 }
-catch(error){
-   errorHandler(error,req,res)
-}
-}
- 
-function Movie(id,  title,  original_language,  summary , original_title ,overview){
-this.id=id;
-this.title=title;
-this.original_language=original_language;
-this.summary=summary
-this.overview=overview
-this.original_title=original_title;
-}
-server.get('/popularity',popularity)
-
- async function popularity(req , res){
-   const url="https://api.themoviedb.org/3/trending/all/week?api_key=14a375a649743222ae5e7069be734fe3&language=en-US";
-   let axiosResult = axios.get(url);
-   await res.send(axiosResult.popularity);
-   console.log(axiosResult)
-}
-
-server.get('/vote_average',vote_average)
-
- async function vote_average(req , res){
-   const url="https://api.themoviedb.org/3/trending/all/week?api_key=14a375a649743222ae5e7069be734fe3&language=en-US";
-   let axiosResult = axios.get(url);
-   await res.send(axiosResult.vote_average);
-   console.log(axiosResult)
-}
-
- server.get('/trending',getApiResult) 
- server.get('*',(req,res)=>{
-    res.status(404).send("page not found error");
-
- })
  
 
- server.listen(PORT,()=>{
-    console.log("server");
- })
+function errorHandler(error,req,res){
+    const err={
+        errNum:500,
+        msg:error
+    }
+    res.status(500).send(err);
+}
