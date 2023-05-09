@@ -1,6 +1,6 @@
 
 # Project Name :# MoviesLibrary 
-## Project Version :Version 2
+## Project Version :Version 3
 
 **Author Name**:  Tasneem Alabed 
 
@@ -18,5 +18,6 @@ create directory then touch srever dounload express then write the code
 <!-- What are the features included in you app -->
 get response for the request from user to know about the movie 
 in the second version it incloud 3th part API for movies 
+link the server with database it has a get function  and post also it is use sql lanugise to make the database and link it with server useing pg pakeg
 
 ### the API for movie with key (https://api.themoviedb.org/3/movie/550?api_key=14a375a649743222ae5e7069be734fe3)
