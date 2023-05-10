@@ -48,7 +48,8 @@ server.get('/SimilarMovies', SimilarMovies);
 server.get('/getMovies', gitMoviesHandelar);
 server.post('/addMovie' , postMovies);
 server.delete('/DELETE/:id' ,dELETEByid);
-server.put('/UPDATE/id',updateMovies)
+server.put('/UPDATE/:id',updateMovies);
+server.get('/getMovie/:id',getMovieById)
 
 server.get('/servererror', (req, res) => {
     res.status(500).send("Page Not Found");
@@ -136,19 +137,34 @@ function dELETEByid(req , res){
  
 function updateMovies(req,res){
    
-    const {id} = req.params;
-     
+    const id= req.params.id;
+    console.log(req.params.id);
+
     const sql = `UPDATE movies
     SET title = $1
     WHERE di = ${id};`
     const {title} = req.body;
     const values = [title];
-    client.query(sql,values).then((data4)=>{
-        res.send(data4)
+    client.query(sql,values).then((data5)=>{
+        res.send(data5)
     })
     .catch((error)=>{
         errorHandler(error,req,res)
     })
+}
+
+function getMovieById(req , res){
+
+    const id = req.params.id;
+    const sql=`SELECT * FROM movies WHERE di =${id}
+    ;`
+    client.query(sql).then((data6)=>{
+        res.send(data6)
+    })
+    .catch((error)=>{
+        errorHandler(error,req,res)
+    })
+
 }
    
 function SimilarMovies(req, res) {
